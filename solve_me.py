@@ -65,11 +65,16 @@ $ python tasks.py report # Statistics"""
     def add(self, args):
         self.read_current()
         key_lst = self.current_items.keys()
-        if args[0] in key_lst:
-            pass
-        else:
-            self.current_items[int(args[0])] = args[1]
-            self.write_current()
+        key_lst.append(args[0])
+        while  len(key_lst)-1 == len(set(key_lst)):
+            key_lst.sort()
+            s = set()
+            dup = [elem for elem in key_lst if elem in s or s.add(x)][0]
+            key_lst.remove(dup)
+            key_lst.append(dup+1)
+            
+        self.current_items[int(args[0])] = args[1]
+        self.write_current()
 
     def done(self, args):
         pass
