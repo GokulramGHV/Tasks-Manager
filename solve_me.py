@@ -1,7 +1,6 @@
 class TasksCommand:
     TASKS_FILE = "tasks.txt"
     COMPLETED_TASKS_FILE = "completed.txt"
-
     current_items = {}
     completed_items = []
 
@@ -52,39 +51,55 @@ class TasksCommand:
             self.help()
 
     def help(self):
-        print(
-            """Usage :-
+        print("""Usage :-
 $ python tasks.py add 2 hello world # Add a new item with priority 2 and text "hello world" to the list
 $ python tasks.py ls # Show incomplete priority list items sorted by priority in ascending order
 $ python tasks.py del PRIORITY_NUMBER # Delete the incomplete item with the given priority number
 $ python tasks.py done PRIORITY_NUMBER # Mark the incomplete item with the given PRIORITY_NUMBER as complete
 $ python tasks.py help # Show usage
-$ python tasks.py report # Statistics"""
-        )
+$ python tasks.py report # Statistics""")
 
     def add(self, args):
-        self.read_current()
-        key_lst = self.current_items.keys()
-        key_lst.append(args[0])
-        while  len(key_lst)-1 == len(set(key_lst)):
-            key_lst.sort()
-            s = set()
-            dup = [elem for elem in key_lst if elem in s or s.add(x)][0]
-            key_lst.remove(dup)
-            key_lst.append(dup+1)
-            
+        args[0] = int(args[0])
+        val = args[0]
+        while val in self.current_items.keys():
+            self.current_items[-val] = self.current_items.pop(val)
+            val += 1
+        self.current_items[args[0]] = args[0]
+        keys = list(self.current_items.keys())
+        for i in keys:
+            if i < 0:
+                self.current_items[-i + 1] = self.current_items.pop(i)
         self.current_items[int(args[0])] = args[1]
         self.write_current()
+        print(f'Added task: "{args[1]}" with priority {args[0]}')
 
     def done(self, args):
-        pass
-
+        task = self.delete(args)
+        if task:
+            print("Marked item as done.")
+            self.completed_items.append(task)
+            self.write_completed()
+        else:
+            print(f"Error: no incomplete item with priority {args[0]} exists.")
+            
     def delete(self, args):
-        pass
+        if int(args[0]) in self.current_items.keys():
+            task = self.current_items.pop(int(args[0]))
+            print(f"Deleted item with priority {args[0]}")
+            self.write_current()
+            return task
+        else:
+            print(f"Error: item with priority {args[0]} does not exist. Nothing deleted.")
 
     def ls(self):
+        num = 1
         for key in sorted(self.current_items.keys()):
-            print(f"{key} {self.current_items[key]}")
+            print(f"{num}. {self.current_items[key]} [{key}]"); num += 1
 
     def report(self):
-        pass
+        print("Pending :", len(self.current_items))
+        self.ls()
+        print("\nCompleted :", len(self.completed_items))
+        for i in range(len(self.completed_items)):
+            print(f"{i+1}. {self.completed_items[i]}")
